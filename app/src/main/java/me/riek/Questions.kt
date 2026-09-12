@@ -135,8 +135,7 @@ private val POOL: List<(Random) -> Question> = listOf(
 
 /** K(80): 80 independent draws from the weighted pool. */
 fun generateQuestions(rng: Random = Random.Default): List<Question> =
-    List(QUESTION_COUNT) { Question("1 + 1", "2") } // TEMP testing — restore line below
-    // List(QUESTION_COUNT) { s(POOL, rng)(rng) }
+    List(QUESTION_COUNT) { s(POOL, rng)(rng) }
 
 /**
  * The site's answer check: trim; exact string match (handles fractions), else

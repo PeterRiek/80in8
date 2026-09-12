@@ -31,11 +31,20 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -49,6 +58,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -67,6 +77,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import me.riek.ui.theme.Amber500
@@ -249,19 +260,25 @@ fun StatCard(label: String, value: String, modifier: Modifier = Modifier) {
 fun GameRow(game: Game) {
     val fmt = remember { SimpleDateFormat("d MMM · HH:mm", Locale.getDefault()) }
     Row(
-        Modifier.fillMaxWidth().padding(vertical = 8.dp),
+        Modifier.fillMaxWidth().padding(vertical = 10.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column {
-            Text(fmt.format(Date(game.playedAt)), color = Zinc400, fontSize = 14.sp)
-            Row(Modifier.padding(top = 2.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text("${game.right} passed", color = Emerald, fontFamily = FontFamily.Monospace, fontSize = 12.sp)
-                Text("${game.wrong} failed", color = RedC, fontFamily = FontFamily.Monospace, fontSize = 12.sp)
-                Text("${game.skipped} skipped", color = Zinc400, fontFamily = FontFamily.Monospace, fontSize = 12.sp)
-            }
+        Text(fmt.format(Date(game.playedAt)), color = Zinc400, fontSize = 13.sp)
+        Row(horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically) {
+            Stat(Icons.Filled.CheckCircle, game.right, EmeraldText)
+            Stat(Icons.Filled.Cancel, game.wrong, RedText)
+            Stat(Icons.Filled.Remove, game.skipped, Zinc400)
         }
-        Text("${game.score} pts", color = bandFor(game.score).color, fontWeight = FontWeight.Bold)
+        Text("${game.score} pts", color = bandFor(game.score).color, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+    }
+}
+
+@Composable
+private fun Stat(icon: androidx.compose.ui.graphics.vector.ImageVector, count: Int, color: Color) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(15.dp))
+        Text("$count", color = color, fontFamily = FontFamily.Monospace, fontSize = 13.sp, modifier = Modifier.padding(start = 3.dp))
     }
 }
 
@@ -488,7 +505,7 @@ private fun AnswerRow(number: Int, question: String, given: String, answer: Stri
     val correct = checkAnswer(given, answer)
     val bg = when { correct -> EmeraldBg; skipped -> SkippedBg; else -> RedBg }
     val ansColor = when { correct -> EmeraldText; skipped -> Zinc400; else -> RedText }
-    val icon = when { correct -> "✅"; skipped -> "—"; else -> "❌" }
+    val icon = when { correct -> Icons.Filled.CheckCircle; skipped -> Icons.Filled.Remove; else -> Icons.Filled.Cancel }
 
     Row(
         Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).background(bg)
@@ -499,7 +516,7 @@ private fun AnswerRow(number: Int, question: String, given: String, answer: Stri
             "$number", color = Zinc500, fontFamily = FontFamily.Monospace, fontSize = 12.sp,
             textAlign = TextAlign.End, modifier = Modifier.width(22.dp),
         )
-        Text(icon, fontSize = 15.sp, color = if (skipped) Zinc400 else Color.Unspecified, modifier = Modifier.padding(start = 10.dp))
+        Icon(icon, contentDescription = null, tint = ansColor, modifier = Modifier.padding(start = 10.dp).size(18.dp))
         Text(
             question, color = Zinc200, fontFamily = FontFamily.Monospace, fontSize = 15.sp,
             maxLines = 1, overflow = TextOverflow.Ellipsis,
@@ -523,9 +540,47 @@ private fun AnswerRow(number: Int, question: String, given: String, answer: Stri
 @Composable
 fun HistoryScreen(dao: GameDao, onBack: () -> Unit) {
     val games by dao.all().collectAsStateWithLifecycle(emptyList())
+    val scope = rememberCoroutineScope()
+    var menuOpen by remember { mutableStateOf(false) }
+    var confirmReset by remember { mutableStateOf(false) }
+
+    BackHandler { onBack() }
+
+    if (confirmReset) {
+        AlertDialog(
+            onDismissRequest = { confirmReset = false },
+            containerColor = Surface,
+            title = { Text("Reset progress?", color = White) },
+            text = { Text("This permanently deletes all ${games.size} saved games.", color = Zinc400) },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmReset = false
+                    scope.launch { dao.deleteAll() }
+                }) { Text("Reset", color = RedC, fontWeight = FontWeight.Bold) }
+            },
+            dismissButton = { TextButton(onClick = { confirmReset = false }) { Text("Cancel", color = Zinc400) } },
+        )
+    }
 
     Column(Modifier.fillMaxSize().padding(24.dp)) {
-        Text("Progress", fontSize = 32.sp, fontWeight = FontWeight.Black, color = Cyan)
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text("Progress", fontSize = 32.sp, fontWeight = FontWeight.Black, color = Cyan)
+            Box {
+                IconButton(onClick = { menuOpen = true }) {
+                    Icon(Icons.Filled.MoreVert, contentDescription = "Menu", tint = Zinc400)
+                }
+                DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                    DropdownMenuItem(
+                        text = { Text("Reset progress", color = RedC) },
+                        onClick = { menuOpen = false; confirmReset = true },
+                    )
+                }
+            }
+        }
         Spacer(Modifier.height(16.dp))
 
         if (games.size < 2) {

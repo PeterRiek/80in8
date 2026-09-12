@@ -39,6 +39,9 @@ interface GameDao {
 
     @Query("SELECT MAX(score) FROM games")
     fun maxScore(): Flow<Int?>
+
+    @Query("DELETE FROM games")
+    suspend fun deleteAll()
 }
 
 private val MIGRATION_1_2 = object : Migration(1, 2) {
@@ -46,6 +49,25 @@ private val MIGRATION_1_2 = object : Migration(1, 2) {
         db.execSQL("ALTER TABLE games ADD COLUMN right INTEGER NOT NULL DEFAULT 0")
         db.execSQL("ALTER TABLE games ADD COLUMN wrong INTEGER NOT NULL DEFAULT 0")
         db.execSQL("ALTER TABLE games ADD COLUMN skipped INTEGER NOT NULL DEFAULT 0")
+    }
+}
+
+/** Seeds ~20 demo games (trending upward) the first time the DB is created. */
+private val SEED_CALLBACK = object : RoomDatabase.Callback() {
+    override fun onCreate(db: SupportSQLiteDatabase) {
+        val now = System.currentTimeMillis()
+        val day = 24 * 60 * 60 * 1000L
+        val rnd = kotlin.random.Random(42)
+        for (i in 0 until 20) {
+            val right = (22 + i * 2 + rnd.nextInt(-4, 5)).coerceIn(0, 80)
+            val wrong = rnd.nextInt(3, 14).coerceAtMost(80 - right)
+            val skipped = 80 - right - wrong
+            val score = right - wrong
+            val playedAt = now - (20 - i) * day - rnd.nextInt(0, 12 * 60 * 60 * 1000)
+            db.execSQL(
+                "INSERT INTO games (playedAt, score, right, wrong, skipped) VALUES ($playedAt, $score, $right, $wrong, $skipped)"
+            )
+        }
     }
 }
 
@@ -62,7 +84,7 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "80in8.db"
-                ).addMigrations(MIGRATION_1_2).build().also { instance = it }
+                ).addMigrations(MIGRATION_1_2).addCallback(SEED_CALLBACK).build().also { instance = it }
             }
     }
 }
