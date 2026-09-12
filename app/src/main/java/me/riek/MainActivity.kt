@@ -261,24 +261,30 @@ fun GameRow(game: Game) {
     val fmt = remember { SimpleDateFormat("d MMM · HH:mm", Locale.getDefault()) }
     Row(
         Modifier.fillMaxWidth().padding(vertical = 10.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(fmt.format(Date(game.playedAt)), color = Zinc400, fontSize = 13.sp)
-        Row(horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically) {
+        Text(fmt.format(Date(game.playedAt)), color = Zinc400, fontSize = 13.sp, modifier = Modifier.weight(1f))
+        // fixed-width columns so passed/failed/skipped line up across every row
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
             Stat(Icons.Filled.CheckCircle, game.right, EmeraldText)
             Stat(Icons.Filled.Cancel, game.wrong, RedText)
             Stat(Icons.Filled.Remove, game.skipped, Zinc400)
         }
-        Text("${game.score} pts", color = bandFor(game.score).color, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+        Text(
+            "${game.score} pts", color = bandFor(game.score).color, fontWeight = FontWeight.Bold, fontSize = 15.sp,
+            textAlign = TextAlign.End, modifier = Modifier.width(58.dp).padding(start = 10.dp),
+        )
     }
 }
 
 @Composable
 private fun Stat(icon: androidx.compose.ui.graphics.vector.ImageVector, count: Int, color: Color) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    Row(Modifier.width(40.dp), verticalAlignment = Alignment.CenterVertically) {
         Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(15.dp))
-        Text("$count", color = color, fontFamily = FontFamily.Monospace, fontSize = 13.sp, modifier = Modifier.padding(start = 3.dp))
+        Text(
+            "$count", color = color, fontFamily = FontFamily.Monospace, fontSize = 13.sp,
+            textAlign = TextAlign.End, modifier = Modifier.weight(1f),
+        )
     }
 }
 
