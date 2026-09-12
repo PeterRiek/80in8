@@ -5,4 +5,11 @@
         <item name="android:navigationBarColor">#000000</item>
         <item name="android:windowBackground">#000000</item>
     </style>
+
+    <!-- Launch/splash theme (core-splashscreen). Swaps to Theme.EightyIn8 once loaded. -->
+    <style name="Theme.EightyIn8.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">#000000</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="postSplashScreenTheme">@style/Theme.EightyIn8</item>
+    </style>
 </resources>

@@ -3,13 +3,15 @@
 
     <application
         android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:label="80in8"
         android:supportsRtl="true"
         android:theme="@style/Theme.EightyIn8">
         <activity
             android:name="me.riek.MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.EightyIn8">
+            android:theme="@style/Theme.EightyIn8.Splash">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
