@@ -265,25 +265,27 @@ fun GameRow(game: Game) {
     ) {
         Text(fmt.format(Date(game.playedAt)), color = Zinc400, fontSize = 13.sp, modifier = Modifier.weight(1f))
         // fixed-width columns so passed/failed/skipped line up across every row
-        Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
             Stat(Icons.Filled.CheckCircle, game.right, EmeraldText)
             Stat(Icons.Filled.Cancel, game.wrong, RedText)
             Stat(Icons.Filled.Remove, game.skipped, Zinc400)
         }
         Text(
             "${game.score} pts", color = bandFor(game.score).color, fontWeight = FontWeight.Bold, fontSize = 15.sp,
-            textAlign = TextAlign.End, modifier = Modifier.width(58.dp).padding(start = 10.dp),
+            fontFamily = FontFamily.Monospace, textAlign = TextAlign.Start,
+            modifier = Modifier.width(64.dp).padding(start = 16.dp),
         )
     }
 }
 
 @Composable
 private fun Stat(icon: androidx.compose.ui.graphics.vector.ImageVector, count: Int, color: Color) {
-    Row(Modifier.width(40.dp), verticalAlignment = Alignment.CenterVertically) {
+    // icon at a fixed leading position (so icons line up across rows), number right beside it
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
         Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(15.dp))
         Text(
             "$count", color = color, fontFamily = FontFamily.Monospace, fontSize = 13.sp,
-            textAlign = TextAlign.End, modifier = Modifier.weight(1f),
+            modifier = Modifier.width(18.dp),
         )
     }
 }
