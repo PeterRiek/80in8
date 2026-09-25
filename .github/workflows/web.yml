@@ -1,0 +1,34 @@
+name: Web
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "web/**"
+      - ".github/workflows/web.yml"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: ./web
+          push: true
+          tags: |
+            ghcr.io/peterriek/80in8-web:latest
+            ghcr.io/peterriek/80in8-web:${{ github.sha }}
+
+      # tell Portainer to re-pull :latest (set the stack webhook URL as a secret)
+      - name: Redeploy on Portainer
+        run: curl -fsSL -X POST "${{ secrets.PORTAINER_WEBHOOK_URL }}"
