@@ -3,7 +3,7 @@ name: Android Release
 on:
   push:
     tags:
-      - "android-v*"
+      - "v*"
 
 jobs:
   build:

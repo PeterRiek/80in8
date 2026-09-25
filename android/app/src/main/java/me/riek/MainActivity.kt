@@ -33,6 +33,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Remove
@@ -270,11 +271,16 @@ fun GameRow(game: Game) {
             Stat(Icons.Filled.Cancel, game.wrong, RedText)
             Stat(Icons.Filled.Remove, game.skipped, Zinc400)
         }
-        Text(
-            "${game.score} pts", color = bandFor(game.score).color, fontWeight = FontWeight.Bold, fontSize = 15.sp,
-            fontFamily = FontFamily.Monospace, textAlign = TextAlign.Start,
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.width(64.dp).padding(start = 16.dp),
-        )
+        ) {
+            Icon(Icons.Filled.EmojiEvents, contentDescription = null, tint = bandFor(game.score).color, modifier = Modifier.size(15.dp))
+            Text(
+                "${game.score}", color = bandFor(game.score).color, fontWeight = FontWeight.Bold, fontSize = 15.sp,
+                fontFamily = FontFamily.Monospace,
+            )
+        }
     }
 }
 
